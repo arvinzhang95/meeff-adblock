@@ -1,0 +1,118 @@
+#!name=MEEFF 去广告
+#!desc=拦截 MEEFF 集成的第三方广告 SDK（AppLovin MAX / AdMob / Meta Audience Network / ironSource / Pangle / Tapjoy / Unity Ads / Amazon Ads / Mintegral / Fyber / AdFit / AdPie / TNK Factory 等）。第一层域名拦截即装即用、无需证书；第二层 API 级过滤为可选（见文件内注释）。
+#!author=Codex
+#!icon=https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Advertising.png
+
+[Rule]
+# ============================================================
+# 第一层：广告 SDK 域名拦截（HTTPS 也有效，无需安装证书）
+# 依据：MEEFF Android 6.x 静态分析（Exodus Privacy）确认的广告 SDK
+# ============================================================
+
+# Google AdMob / DoubleClick
+DOMAIN-SUFFIX,doubleclick.net,REJECT
+DOMAIN-SUFFIX,googlesyndication.com,REJECT
+DOMAIN-SUFFIX,googleadservices.com,REJECT
+DOMAIN-SUFFIX,2mdn.net,REJECT
+DOMAIN,adservice.google.com,REJECT
+
+# Meta Audience Network（只拦 an.facebook.com，不影响 Facebook 登录/分享）
+DOMAIN,an.facebook.com,REJECT
+
+# AppLovin MAX（MEEFF 的主要广告聚合平台）
+DOMAIN-SUFFIX,applovin.com,REJECT
+DOMAIN-SUFFIX,applvn.com,REJECT
+
+# ironSource
+DOMAIN-SUFFIX,ironsrc.com,REJECT
+DOMAIN-SUFFIX,ironsrc.mobi,REJECT
+DOMAIN-SUFFIX,ironsrc.media,REJECT
+DOMAIN-SUFFIX,supersonicads.com,REJECT
+DOMAIN-SUFFIX,ssacdn.com,REJECT
+
+# Pangle（TikTok/字节跳动广告）
+DOMAIN-SUFFIX,pangleglobal.com,REJECT
+DOMAIN-SUFFIX,pangle-ssr.com,REJECT
+
+# Tapjoy
+DOMAIN-SUFFIX,tapjoy.com,REJECT
+DOMAIN-SUFFIX,tapjoyads.com,REJECT
+DOMAIN-SUFFIX,tapjoy.net,REJECT
+
+# Unity Ads（只拦广告相关主机，不拦其他 Unity 服务）
+DOMAIN-SUFFIX,unityads.unity3d.com,REJECT
+DOMAIN,adserver.unity3d.com,REJECT
+DOMAIN,prd-adserver.unity3d.com,REJECT
+DOMAIN,prd-vod.unity3d.com,REJECT
+DOMAIN,prd-adplayer.unity3d.com,REJECT
+
+# Amazon Ads
+DOMAIN-SUFFIX,amazon-adsystem.com,REJECT
+DOMAIN-SUFFIX,aaxads.com,REJECT
+
+# AD(X)
+DOMAIN-SUFFIX,adx.com,REJECT
+DOMAIN-SUFFIX,adxplatform.com,REJECT
+
+# AdFit（Daum/Kakao，韩国广告网络）
+DOMAIN-SUFFIX,adfit.co.kr,REJECT
+
+# AdPie（GOM Factory，韩国广告网络）
+DOMAIN-SUFFIX,adpie.io,REJECT
+DOMAIN-SUFFIX,adpie.co.kr,REJECT
+
+# TNK Factory（韩国广告网络）
+DOMAIN-SUFFIX,tnkfactory.com,REJECT
+DOMAIN-SUFFIX,tnkfactory.co.kr,REJECT
+
+# Fyber / Inneractive
+DOMAIN-SUFFIX,fyber.com,REJECT
+DOMAIN-SUFFIX,fybercdn.com,REJECT
+DOMAIN-SUFFIX,inner-active.mobi,REJECT
+
+# Mintegral
+DOMAIN-SUFFIX,mintegral.com,REJECT
+DOMAIN-SUFFIX,mintegral.net,REJECT
+
+# 归因/追踪（可去掉行首 # 开启；只影响广告归因统计，不影响使用）
+# DOMAIN-SUFFIX,adjust.com,REJECT
+
+# ============================================================
+# 可选扩展：其他常见移动广告网络
+# 若启用第一层后仍能抓到上述网络之外的广告域名，可去掉
+# 下方对应行首的 # 再试（均只涉及纯广告域名）
+# ============================================================
+# DOMAIN-SUFFIX,vungle.com,REJECT
+# DOMAIN-SUFFIX,vungle.tv,REJECT
+# DOMAIN-SUFFIX,adcolony.com,REJECT
+# DOMAIN-SUFFIX,adcolony.net,REJECT
+# DOMAIN-SUFFIX,inmobi.com,REJECT
+# DOMAIN-SUFFIX,chartboost.com,REJECT
+# DOMAIN-SUFFIX,chartboost.net,REJECT
+# DOMAIN-SUFFIX,smaato.net,REJECT
+# DOMAIN-SUFFIX,pubnative.net,REJECT
+# DOMAIN-SUFFIX,ogury.co,REJECT
+# DOMAIN-SUFFIX,startappservice.com,REJECT
+# DOMAIN-SUFFIX,bidmachine.io,REJECT
+# DOMAIN-SUFFIX,moloco.com,REJECT
+# DOMAIN-SUFFIX,unrulymedia.com,REJECT
+# DOMAIN-SUFFIX,appnext.com,REJECT
+
+# ============================================================
+# 第二层（可选）：MEEFF 自有 API 的广告类接口
+# 需要：① 取消下方 [URL Rewrite] 与 [MITM] 段的注释；
+#       ② 在 Shadowrocket「配置 → HTTPS 解密」中安装并信任 CA 证书。
+# 提示：若开启后 MEEFF 无法联网（App 做了证书锁定），请把
+#       第二层恢复注释并只保留第一层域名拦截。
+# ============================================================
+# [URL Rewrite]
+# ^https?:\/\/api\.meeff\.com\/(?:[^\/]+\/)?(?:ad|ads|advert|advertisements?|banner|banners|interstitial|splash|sponsor|sponsored|promotion|promoted|nativead|nativeads|native_ad|native_ads|adunit|ad_unit)(?:[\/\?]|$) reject
+
+# 第二层（进阶）：用脚本从 MEEFF API 的 JSON 响应中删除广告节点
+# 用法：把随附的 MEEFF_Ads_Filter.js 放到任意可访问的 URL（如 GitHub Gist），
+#       将下方 script-path 改为你的 URL，然后取消注释。
+# [Script]
+# meeff-ads=type=http-response,pattern=^https?:\/\/api\.meeff\.com\/,requires-body=1,script-path=https://你的地址/MEEFF_Ads_Filter.js
+
+# [MITM]
+# hostname = %APPEND% api.meeff.com
